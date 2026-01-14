@@ -39,7 +39,21 @@ import java.util.List;
 // term       -> factor ( ( "-" | "+" ) factor )* ;
 // factor     -> unary ( ( "/" | "*" ) )* ;
 // unary      -> ( "!" | "-" ) unary | primary;
-// primary    -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")";
+// primary    -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER;
+
+// ** Rules as defined in chapter 8 **
+//
+// program   -> statetemt* EOF;
+// statement -> exprStmt | printStmt;
+// exprStmt  -> expression ";";
+// printStmt -> "print" expression ";";
+
+// ** Rykes fir types of statements **
+//
+// program     -> declaration* EOF;
+// decleration -> varDecl | statement;
+// statement   -> exprStmt | printStmt;
+// varDecl     -> "var" IDENTIFIER ( "=" expression )? ";" ;
 
 abstract class Expr {
 
@@ -53,6 +67,22 @@ abstract class Expr {
 		T visitLiteralExpr(Literal expr);
 
 		T visitUnaryExpr(Unary expr);
+
+		T visitVariableExpr(Variable var);
+
+	}
+
+	static class Variable extends Expr {
+		final Token name;
+
+		Variable(Token name) {
+			this.name = name;
+		}
+
+		@Override
+		<T> T accept(Expr.Visitor<T> visitor) {
+			return visitor.visitVariableExpr(this);
+		}
 	}
 
 	static class Binary extends Expr {

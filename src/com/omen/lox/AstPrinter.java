@@ -14,6 +14,11 @@ class AstPrinter implements Expr.Visitor<String> {
 	}
 
 	@Override
+	public String visitVariableExpr(Expr.Variable variable) {
+		return "";
+	}
+
+	@Override
 	public String visitGroupingExpr(Expr.Grouping expr) {
 		return parenthesize("group", expr.expression);
 	}

@@ -27,7 +27,7 @@ class Scanner {
 		keywords.put("return", RETURN);
 		keywords.put("super", SUPER);
 		keywords.put("this", THIS);
-		keywords.put("TRUE", TRUE);
+		keywords.put("true", TRUE);
 		keywords.put("var", VAR);
 		keywords.put("while", WHILE);
 
@@ -130,8 +130,6 @@ class Scanner {
 								break;
 							}
 						}
-
-						this.advance();
 
 					}
 
@@ -267,7 +265,6 @@ class Scanner {
 
 	private boolean isAlphaNumeric(char c) {
 		return this.isAlpha(c) || this.isDigit(c);
-
 	}
 
 }

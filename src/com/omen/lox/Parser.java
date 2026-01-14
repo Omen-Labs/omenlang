@@ -1,13 +1,13 @@
 package com.omen.lox;
 
+import java.util.ArrayList;
 import java.util.List;
-
 import static com.omen.lox.TokenType.*;
 
 class Parser {
 
 	private static class ParseError extends RuntimeException {
-	}
+	};
 
 	private final List<Token> tokens;
 	private int current = 0;
@@ -17,6 +17,11 @@ class Parser {
 	}
 
 	private Expr expression() {
+		// TODO: sort out if there is any conflict with comments
+
+		//
+		if (this.tokens.get(0).type == EOF)
+			return null;
 		return this.equality();
 	}
 
@@ -33,12 +38,57 @@ class Parser {
 		return expr;
 	}
 
-	Expr parse() {
+	private Stmt declaration() {
 		try {
-			return expression();
+			if (this.match(VAR))
+				return varDeclaration();
+
+			return statement();
 		} catch (ParseError e) {
+			synchronize();
 			return null;
 		}
+	}
+
+	private Stmt varDeclaration() {
+		Token name = consume(IDENTIFIER, "Expect varaible name");
+
+		Expr initializer = null;
+		if (this.match(EQUAL))
+			initializer = expression();
+
+		consume(SEMICOLON, "Expect ';' after variable declaration");
+		return new Stmt.Var(name, initializer);
+	}
+
+	// TODO: well it will be implemented soon anyways and that is handeling a parse
+	// error.
+	List<Stmt> parse() {
+		List<Stmt> statements = new ArrayList<>();
+
+		while (!isAtEnd()) {
+			statements.add(this.declaration());
+		}
+		return statements;
+	}
+
+	private Stmt printStatement() {
+		Expr value = expression();
+		consume(SEMICOLON, "Expect ';' after value.");
+		return new Stmt.Print(value);
+	}
+
+	private Stmt expressionStatement() {
+		Expr expr = expression();
+		consume(SEMICOLON, "Expect ';' after value.");
+		return new Stmt.Expression(expr);
+	}
+
+	private Stmt statement() {
+		if (this.match(PRINT))
+			return printStatement();
+		// TODO: fix this line.
+		return expressionStatement();
 	}
 
 	private Expr comparisson() {
@@ -100,13 +150,16 @@ class Parser {
 		if (this.match(NIL))
 			return new Expr.Literal(null);
 
+		if (match(IDENTIFIER))
+			return new Expr.Variable(this.previous());
+
 		if (this.match(NUMBER, STRING)) {
 			return new Expr.Literal(previous().literal);
 		}
 
 		if (match(LEFT_PAREN)) {
 			Expr expr = this.expression();
-			consume(RIGHT_PAREN, "Expect ')' after expression.");
+			this.consume(RIGHT_PAREN, "Expect ')' after expression.");
 
 			return new Expr.Grouping(expr);
 		}

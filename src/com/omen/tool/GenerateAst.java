@@ -17,10 +17,16 @@ public class GenerateAst {
 		String outputDir = args[0];
 
 		defineAst(outputDir, "Expr", Arrays.asList(
-				"Binary : Expr left, Token operator, Expr right",
-				"Grouping : Expr expression",
 				"Literal : Object value",
-				"Unary : Token operator, Expr right"));
+				"Unary : Token operator, Expr right",
+				"Binary : Expr left, Token operator, Expr right",
+				"Assing: Token name, Expr value",
+				"Var : Token name, Expr initializer"));
+
+		defineAst(outputDir, "Stmt", Arrays.asList(
+				"Var: Token name, Expr initializer",
+				"Expression: Expr Expression",
+				"Print: Expr expression"));
 	}
 
 	private static void defineAst(
@@ -35,9 +41,25 @@ public class GenerateAst {
 		write.println();
 		write.println("import java.util.List;");
 		write.println();
-		write.println("abstract class " + baseName + " {");
+		write.println("abstract class " + baseName + "{");
 
-		defineVisitor(write, baseName, types);
+		write.println();
+
+		write.println("abstract <T> T accept(Visitor<T>);");
+
+		write.println();
+		write.println("interface Visitor<T> {");
+
+		for (String type : types) {
+			String subcls = type.split(":")[0].trim();
+
+			write.println("T visit" + subcls + baseName + "(" + subcls + subcls.toLowerCase() + ");");
+
+		}
+
+		write.println();
+		write.println("}");
+		write.println();
 
 		for (String type : types) {
 			String className = type.split(":")[0].trim();
@@ -45,9 +67,6 @@ public class GenerateAst {
 
 			defineType(write, baseName, className, fields);
 		}
-
-		write.println();
-		write.println("		abstract <T> T accept(Visitor<T> visitor);");
 
 		write.println("}");
 		write.close();
@@ -59,10 +78,10 @@ public class GenerateAst {
 			String className,
 			String fieldList) {
 
-		write.println("		static class " + className + " extends " + baseName + " {");
+		write.println("static class " + className + " extends " + baseName + " {");
 
 		// Contructor
-		write.println("			" + className + "(" + fieldList + ") {");
+		write.println("" + className + "(" + fieldList + ") {");
 
 		// Store params in fields.
 
@@ -71,46 +90,18 @@ public class GenerateAst {
 		for (String field : fields) {
 
 			String name = field.split(" ")[1];
-			write.println("				this." + name + " = " + name + ";");
+			write.println("		this." + name + " = " + name + ";");
 
 		}
 
 		write.println("		}");
-
-		// Accept for visotr pattern:
-
-		write.println();
-		write.println("		@Override");
-		write.println(" <T> T accept(Visitor<T> visitor) {");
-
-		write.println("return visitor.visit" + className + baseName + "(this);");
-		write.println(" 	}");
-
-		// Fields
 
 		write.println();
 		for (String field : fields) {
-			write.println("			final " + field + ";");
+			write.println("		final " + field + ";");
 		}
 
 		write.println("		}");
-
-	}
-
-	private static void defineVisitor(
-			PrintWriter write,
-			String baseName,
-			List<String> types) {
-		write.println("		interface Visitor<T> {");
-		for (String type : types) {
-
-			String typeName = type.split(":")[0].trim();
-			write.println(" 	T visit" + typeName + baseName + "(" + typeName + " "
-					+ baseName.toLowerCase() + ");");
-
-		}
-
-		write.println(" 	}");
 
 	}
 
