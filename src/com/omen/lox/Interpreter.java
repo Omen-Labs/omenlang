@@ -5,6 +5,7 @@ import java.util.List;
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	private Environment env = new Environment();
+	private int timesVisited = 0;
 
 	void interpret(List<Stmt> stmts) {
 		try {
@@ -15,6 +16,71 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			}
 		} catch (RuntimeError e) {
 			Lox.runtimeError(e);
+		}
+	}
+
+	@Override
+	public Void visitIfStmt(Stmt.If stmt) {
+		if (isTruthy(evaluate(stmt.condition))) {
+			execute(stmt.thenBranch);
+		} else if (stmt.elseBranch != null) {
+			execute(stmt.elseBranch);
+		}
+
+		return null;
+	}
+
+	@Override
+	public Object visitLogicalExpr(Expr.Logical expr) {
+		Object left = this.evaluate(expr.left);
+
+		if (expr.operator.type == TokenType.OR) {
+			if (this.isTruthy(left))
+				return left;
+		} else {
+			if (!this.isTruthy(left))
+				return left;
+		}
+
+		return this.evaluate(expr.right);
+	}
+
+	@Override
+	public Void visitWhileStmt(Stmt.While stmt) {
+		while (isTruthy(evaluate(stmt.condtion))) {
+			execute(stmt.body);
+		}
+
+		return null;
+	}
+
+	@Override
+	public Object visitAssignExpr(Expr.Assign expr) {
+		Object value = evaluate(expr.value);
+
+		this.env.assign(expr.name, value);
+		return value;
+	}
+
+	@Override
+	public Void visitBlockStmt(Stmt.Block stmt) {
+		// System.out.println("visited : " + ++this.timesVisited);
+		executeBlock(stmt.stmts, new Environment(this.env));
+		return null;
+	}
+
+	void executeBlock(List<Stmt> stmts, Environment env) {
+		Environment prev = this.env;
+
+		try {
+			this.env = env;
+
+			for (Stmt stmt : stmts) {
+				this.execute(stmt);
+			}
+
+		} finally {
+			this.env = prev;
 		}
 	}
 

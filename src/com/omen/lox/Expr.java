@@ -55,6 +55,32 @@ import java.util.List;
 // statement   -> exprStmt | printStmt;
 // varDecl     -> "var" IDENTIFIER ( "=" expression )? ";" ;
 
+// ** Blocks syntax and semantics
+//
+// statement -> exprStmt | printStmt | block;
+// block     -> "{" declaration* "}" ;
+
+// ** Cibdutuibak production **
+//
+// statement -> epxrStmt | ifStmt | printStmt | block;
+// ifStmt    -> "if" "(" expression ")" statement ( "else" statement )?;
+
+// ** Logical expression **
+//
+// expression -> assignment;
+// assignment -> IDENTIFIER "=" assignment | logic_or;
+// logic_or   -> logic_and ( "or" logic_and )*;
+// lofic_and  -> equility ( "and" equility )*;
+
+// ** While Loops **
+//
+// statement -> exprStmt | ifStmt | printStmt | whileStmt | block;
+// whileStmt -> "while" "(" expression ")" staement;
+
+// ** For Loops **
+//
+// statement -> exprStmt | forStmt | ifStmt | printStmt | whileStmt | block;
+// forStmt   -> "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement;
 abstract class Expr {
 
 	abstract <T> T accept(Visitor<T> visitor);
@@ -70,6 +96,42 @@ abstract class Expr {
 
 		T visitVariableExpr(Variable var);
 
+		T visitAssignExpr(Assign asgn);
+
+		T visitLogicalExpr(Logical logical);
+
+	}
+
+	static class Logical extends Expr {
+		Logical(Expr left, Token operator, Expr right) {
+			this.left = left;
+			this.operator = operator;
+			this.right = right;
+		}
+
+		final Expr left;
+		final Token operator;
+		final Expr right;
+
+		@Override
+		<T> T accept(Expr.Visitor<T> visitor) {
+			return visitor.visitLogicalExpr(this);
+		}
+	}
+
+	static class Assign extends Expr {
+		Assign(Token name, Expr value) {
+			this.name = name;
+			this.value = value;
+		}
+
+		@Override
+		<T> T accept(Visitor<T> visitor) {
+			return visitor.visitAssignExpr(this);
+		}
+
+		final Token name;
+		final Expr value;
 	}
 
 	static class Variable extends Expr {

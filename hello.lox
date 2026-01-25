@@ -1,0 +1,34 @@
+var a = "global a";
+var b = "global b";
+var c = "global c";
+
+{
+	var a = "outer a";
+	var b = "outer b";
+
+	{
+		var a = "inner a";
+		print a;
+		print b;
+		print c;
+	}
+
+	print a;
+	print b;
+	print c;
+}
+
+print a;
+print b;
+print c;
+
+var num = 1;
+
+{
+	var num = num + 2;
+	print num;
+}
+
+for ( var i = 0; i < 3; i = i + 1) {
+	print i;
+}

@@ -1,6 +1,7 @@
 package com.omen.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import static com.omen.lox.TokenType.*;
 
@@ -20,9 +21,7 @@ class Parser {
 		// TODO: sort out if there is any conflict with comments
 
 		//
-		if (this.tokens.get(0).type == EOF)
-			return null;
-		return this.equality();
+		return this.assignment();
 	}
 
 	private Expr equality() {
@@ -33,6 +32,48 @@ class Parser {
 			Token operator = this.previous();
 			Expr right = this.comparisson();
 			expr = new Expr.Binary(expr, operator, right);
+		}
+
+		return expr;
+	}
+
+	private Expr or() {
+		Expr expr = this.and();
+
+		while (match(OR)) {
+			Token operator = previous();
+			Expr right = this.and();
+			expr = new Expr.Logical(expr, operator, right);
+		}
+
+		return expr;
+	}
+
+	private Expr and() {
+		Expr expr = this.equality();
+
+		while (this.match(AND)) {
+			Token operator = this.previous();
+			Expr right = equality();
+			expr = new Expr.Logical(expr, operator, right);
+		}
+
+		return expr;
+	}
+
+	private Expr assignment() {
+		Expr expr = this.or();
+
+		if (match(EQUAL)) {
+			Token equals = this.previous();
+			Expr value = this.assignment();
+
+			if (expr instanceof Expr.Variable) {
+				Token name = ((Expr.Variable) expr).name;
+				return new Expr.Assign(name, value);
+			}
+
+			error(equals, "Invalid asignment target.");
 		}
 
 		return expr;
@@ -84,11 +125,97 @@ class Parser {
 		return new Stmt.Expression(expr);
 	}
 
+	private Stmt whileStatement() {
+		consume(LEFT_PAREN, "Expect '(' after  'while'");
+		Expr condition = expression();
+		consume(RIGHT_PAREN, "Expect ')' after  'while'");
+
+		Stmt body = statement();
+
+		return new Stmt.While(condition, body);
+
+	}
+
+	private Stmt forStatement() {
+		consume(LEFT_PAREN, "Expect '(' after 'for'");
+
+		Stmt initializer;
+		if (match(SEMICOLON)) {
+			initializer = null;
+		} else if (match(VAR)) {
+			initializer = varDeclaration();
+		} else {
+			initializer = expressionStatement();
+		}
+
+		Expr condition = null;
+		if (!check(SEMICOLON)) {
+			condition = expression();
+		}
+		consume(SEMICOLON, "Expect ';' after loop condition");
+
+		Expr increment = null;
+		if (!check(RIGHT_PAREN)) {
+			increment = expression();
+		}
+		consume(RIGHT_PAREN, "Expect ')' after loop condition");
+
+		Stmt body = statement();
+
+		if (increment != null) {
+			body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+		}
+
+		if (condition == null)
+			condition = new Expr.Literal(true);
+		body = new Stmt.While(condition, body);
+
+		if (initializer != null) {
+			body = new Stmt.Block(Arrays.asList(initializer, body));
+		}
+
+		return body;
+
+	}
+
 	private Stmt statement() {
+		if (this.match(FOR))
+			return forStatement();
+		if (this.match(WHILE))
+			return whileStatement();
+		if (this.match(IF))
+			return ifStatement();
 		if (this.match(PRINT))
 			return printStatement();
+		if (this.match(LEFT_BRACE))
+			return new Stmt.Block(this.block());
 		// TODO: fix this line.
 		return expressionStatement();
+	}
+
+	private Stmt ifStatement() {
+		consume(LEFT_PAREN, "Expect '(' after if");
+		Expr condition = expression();
+		consume(RIGHT_PAREN, "Expect ')' after if condition");
+
+		Stmt thenBranch = statement();
+		Stmt elseBranch = null;
+		if (match(ELSE)) {
+			elseBranch = statement();
+		}
+
+		return new Stmt.If(condition, thenBranch, elseBranch);
+	}
+
+	private List<Stmt> block() {
+		List<Stmt> stmts = new ArrayList<>();
+
+		while (!check(RIGHT_BRACE) && !isAtEnd()) {
+			stmts.add(declaration());
+		}
+
+		consume(RIGHT_BRACE, "Expect '}' after block.");
+		return stmts;
 	}
 
 	private Expr comparisson() {
