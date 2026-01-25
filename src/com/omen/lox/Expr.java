@@ -81,6 +81,12 @@ import java.util.List;
 //
 // statement -> exprStmt | forStmt | ifStmt | printStmt | whileStmt | block;
 // forStmt   -> "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement;
+
+// ** Functions ** 
+//
+// unary     -> ( "!" | "-" ) unary | call;
+// call      -> primary ( "(" arguments? ")")*;
+// arguments -> expression ( "," expression )*;
 abstract class Expr {
 
 	abstract <T> T accept(Visitor<T> visitor);
@@ -100,6 +106,8 @@ abstract class Expr {
 
 		T visitLogicalExpr(Logical logical);
 
+		T visitCallExpr(Call logical);
+
 	}
 
 	static class Logical extends Expr {
@@ -116,6 +124,23 @@ abstract class Expr {
 		@Override
 		<T> T accept(Expr.Visitor<T> visitor) {
 			return visitor.visitLogicalExpr(this);
+		}
+	}
+
+	static class Call extends Expr {
+		Call(Expr callee, Token paren, List<Expr> arguments) {
+			this.callee = callee;
+			this.paren = paren;
+			this.arguments = arguments;
+		}
+
+		final Expr callee;
+		final Token paren;
+		final List<Expr> arguments;
+
+		@Override
+		<T> T accept(Expr.Visitor<T> visitor) {
+			return visitor.visitCallExpr(this);
 		}
 	}
 
