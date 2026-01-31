@@ -15,3 +15,5 @@ Things I need to complete
 (7) - Add support for a += / -= operators.
 
 (8) - Add support for **break** and **continue** statements
+
+(9) - Add lambdas to jlox.

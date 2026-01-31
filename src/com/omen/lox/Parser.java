@@ -178,7 +178,43 @@ class Parser {
 
 	}
 
+	// Parameter to distinguish between functions and methods.
+	private Stmt.Function function(String kind) {
+		Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+		consume(LEFT_PAREN, "Expect '(' after " + kind + " name");
+		List<Token> parameters = new ArrayList<>();
+
+		if (!check(RIGHT_PAREN)) {
+			do {
+				if (parameters.size() >= 255)
+					error(peek(), "Can't have more tahn 255 params");
+
+				parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+			} while (match(COMMA));
+		}
+
+		consume(RIGHT_PAREN, "Expect ')' after params");
+
+		consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+		List<Stmt> body = this.block();
+		return new Stmt.Function(name, parameters, body);
+
+	}
+
+	private Stmt returnStmt() {
+		Token keyword = previous();
+		Expr value = null;
+		if (!check(SEMICOLON)) {
+			value = expression();
+		}
+
+		consume(SEMICOLON, "Expect ';' after return value.");
+		return new Stmt.Return(keyword, value);
+	}
+
 	private Stmt statement() {
+		if (this.match(FUN))
+			return function("function");
 		if (this.match(FOR))
 			return forStatement();
 		if (this.match(WHILE))
@@ -187,6 +223,8 @@ class Parser {
 			return ifStatement();
 		if (this.match(PRINT))
 			return printStatement();
+		if (this.match(RETURN))
+			return returnStmt();
 		if (this.match(LEFT_BRACE))
 			return new Stmt.Block(this.block());
 		// TODO: fix this line.

@@ -27,6 +27,10 @@ public class Lox {
 	}
 
 	private static void runFile(String path) throws IOException {
+		if (!path.endsWith(".lox")) {
+			System.err.println("File type not supported.\nFile must end with .lox");
+			System.exit(65);
+		}
 		byte[] bytes = Files.readAllBytes(Paths.get(path));
 		run(new String(bytes, Charset.defaultCharset()));
 
@@ -66,6 +70,8 @@ public class Lox {
 
 		if (hadError)
 			return;
+
+		Resolver resolver = new Resolver(interpreter);
 
 		inpterpreter.interpret(stmts);
 	}

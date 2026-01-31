@@ -87,6 +87,18 @@ import java.util.List;
 // unary     -> ( "!" | "-" ) unary | call;
 // call      -> primary ( "(" arguments? ")")*;
 // arguments -> expression ( "," expression )*;
+
+// ** Function Declerations **
+//
+// declaration -> funDecl | varDecl | statement;
+// funDecl     -> "fun" function;
+// function    -> IDENTIFIER "(" parameters? ")" block;
+// parameters  -> IDENTIFIER ("," IDENTIFIER)*;
+
+// ** Return Statement **
+// statement  -> exprStmt | forStmt | ifStmt | printStmt | returnStmt | whileStmt | block;
+// returnStmt -> "return" expression? ";";
+
 abstract class Expr {
 
 	abstract <T> T accept(Visitor<T> visitor);
