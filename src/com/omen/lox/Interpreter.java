@@ -78,6 +78,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		return null;
 	}
 
+	void resolve(Expr expr, int depth) {
+		this.local.put(expr, depth);
+	}
+
 	@Override
 	public Object visitAssignExpr(Expr.Assign expr) {
 		Object value = evaluate(expr.value);

@@ -11,7 +11,7 @@ import java.util.List;
 public class Lox {
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
-	private static final Interpreter inpterpreter = new Interpreter();
+	private static final Interpreter interpreter = new Interpreter();
 
 	public static void main(String[] args) throws IOException {
 
@@ -72,8 +72,12 @@ public class Lox {
 			return;
 
 		Resolver resolver = new Resolver(interpreter);
+		resolver.resolve(stmts);
 
-		inpterpreter.interpret(stmts);
+		if (hadError)
+			return;
+
+		interpreter.interpret(stmts);
 	}
 
 	static void error(int line, String message) {

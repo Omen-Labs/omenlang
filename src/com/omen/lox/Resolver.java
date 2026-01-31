@@ -76,6 +76,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitReturnStmt(Stmt.Return stmt) {
+
+		if (currentFunction == FunctionType.NONE) {
+			Lox.error(stmt.keyword, "Can't return from top-level code.");
+		}
+
 		if (stmt.value != null) {
 			this.resolve(stmt.value);
 		}
@@ -173,6 +178,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 		this.resolve(function.body);
 		this.endScope();
+
+		this.currentFunction = enclosingFunction;
 	}
 
 	void resolve(List<Stmt> stmts) {
