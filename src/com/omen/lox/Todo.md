@@ -14,6 +14,10 @@ Things I need to complete
 
 (7) - Add support for a += / -= operators.
 
-(8) - Add support for **break** and **continue** statements
+(8) - Add support for **break** and **continue** statements.
 
 (9) - Add lambdas to jlox.
+
+(10) - Add error report for unused local variables.
+
+(11) - Use arrays instead of Hashmaps for resolving variables as its a speedup.
