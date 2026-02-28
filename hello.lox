@@ -29,7 +29,7 @@ var num = 1;
 	print num;
 }
 
-for ( var i = 0; i < 3; i = i + 1) {
+for ( var i = 0; i < 3; i = i + 1 ) {
 	print i;
 }
 
@@ -58,3 +58,13 @@ var a = "global";
 	var a = "block";
 	showA();
 }
+
+print "Thank you very much Esu for the computer.";
+
+class DevonshireCream {
+	serveOn() {
+		return "Scones";
+	}
+}
+
+print DevonshireCream;

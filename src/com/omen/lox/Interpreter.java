@@ -303,6 +303,28 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Object visitGetExpr(Expr.Get expr) {
+		Object object = this.evaluate(expr.object);
+		if (object instanceof LoxInstance) {
+			return ((LoxInstance) object).get(expr.name);
+		}
+
+		throw new RuntimeError(expr.name, "Only instances have properties.");
+	}
+
+	@Override
+	public Void visitClassStmt(Stmt.Class stmt) {
+		this.env.define(stmt.name.lexeme, null);
+		// This defining and assigning allows for using a class name before the class
+		// definition is fully complete. Refrencing itself similar to the recursion.
+
+		LoxClass klass = new LoxClass(stmt.name.lexeme);
+		this.env.assign(stmt.name, klass);
+
+		return null;
+	}
+
+	@Override
 	public Void visitReturnStmt(Stmt.Return stmt) {
 		Object value = null;
 		if (stmt.value != null)

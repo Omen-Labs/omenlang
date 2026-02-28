@@ -96,8 +96,20 @@ import java.util.List;
 // parameters  -> IDENTIFIER ("," IDENTIFIER)*;
 
 // ** Return Statement **
+//
 // statement  -> exprStmt | forStmt | ifStmt | printStmt | returnStmt | whileStmt | block;
 // returnStmt -> "return" expression? ";";
+
+// ** Class Declaration **
+//
+// declaration -> classDecl | funcDecl | varDecl | statement;
+// classDecl   -> "class" IDENTIFIER "{" function* "}";
+// function    -> IDENTIFIER "(" parameters? ")" block;
+// parameters  -> IDENTIFIER ( "," IDENTIFIER )* '
+
+// ** Call Expression Update **
+//
+// call -> primary ( "(" arguments? ")" | "." IDENTIFIER )*;
 
 abstract class Expr {
 
@@ -119,6 +131,8 @@ abstract class Expr {
 		T visitLogicalExpr(Logical logical);
 
 		T visitCallExpr(Call logical);
+
+		T visitGetExpr(Get getExpr);
 
 	}
 
@@ -154,6 +168,21 @@ abstract class Expr {
 		<T> T accept(Expr.Visitor<T> visitor) {
 			return visitor.visitCallExpr(this);
 		}
+	}
+
+	static class Get extends Expr {
+		Get(Expr object, Token name) {
+			this.name = name;
+			this.object = object;
+		}
+
+		@Override
+		<T> T accept(Visitor<T> visitor) {
+			return visitor.visitGetExpr(this);
+		}
+
+		final Token name;
+		final Expr object;
 	}
 
 	static class Assign extends Expr {

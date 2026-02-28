@@ -23,6 +23,20 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Void visitClassStmt(Stmt.Class stmt) {
+		this.declare(stmt.name);
+		this.define(stmt.name);
+
+		return null;
+	}
+
+	@Override
+	public Void visitGetExpr(Expr.Get expr) {
+		this.resolve(expr.object);
+		return null;
+	}
+
+	@Override
 	public Void visitBlockStmt(Stmt.Block stmt) {
 		beginScope();
 		resolve(stmt.stmts);

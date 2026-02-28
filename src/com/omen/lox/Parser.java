@@ -212,7 +212,23 @@ class Parser {
 		return new Stmt.Return(keyword, value);
 	}
 
+	private Stmt classDeclaration() {
+		Token name = consume(IDENTIFIER, "Expect ** CLASS ** name");
+		consume(LEFT_BRACE, "Expect '{' after ** CLASS ** name");
+		List<Stmt.Function> methods = new ArrayList<>();
+
+		while (!this.check(RIGHT_BRACE) && !this.isAtEnd()) {
+			methods.add(this.function("method"));
+		}
+
+		consume(RIGHT_BRACE, "Expect '}' after class body.");
+
+		return new Stmt.Class(name, methods);
+	}
+
 	private Stmt statement() {
+		if (this.match(CLASS))
+			return classDeclaration();
 		if (this.match(FUN))
 			return function("function");
 		if (this.match(FOR))
@@ -311,9 +327,12 @@ class Parser {
 		Expr expr = this.primary();
 
 		while (true) {
-			if (this.match(LEFT_PAREN))
+			if (this.match(LEFT_PAREN)) {
 				expr = this.finishCall(expr);
-			else
+			} else if (this.match(DOT)) {
+				Token name = this.consume(IDENTIFIER, "Expect property name after '.'");
+				expr = new Expr.Get(expr, name);
+			} else
 				break;
 		}
 

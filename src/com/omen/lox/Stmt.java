@@ -22,6 +22,24 @@ abstract class Stmt {
 		T visitFunctionStmt(Function function);
 
 		T visitReturnStmt(Return retrunstmt);
+
+		T visitClassStmt(Class classStmt);
+	}
+
+	static class Class extends Stmt {
+
+		Class(Token name, List<Stmt.Function> methods) {
+			this.name = name;
+			this.methods = methods;
+		}
+
+		@Override
+		<T> T accept(Visitor<T> visitor) {
+			return visitor.visitClassStmt(this);
+		}
+
+		final Token name;
+		final List<Stmt.Function> methods;
 	}
 
 	static class Var extends Stmt {
