@@ -111,6 +111,10 @@ import java.util.List;
 //
 // call -> primary ( "(" arguments? ")" | "." IDENTIFIER )*;
 
+// ** Set expression **
+//
+// assignment -> ( call ".")? IDENTIFIER "=" assignment | logical_or;
+
 abstract class Expr {
 
 	abstract <T> T accept(Visitor<T> visitor);
@@ -134,6 +138,40 @@ abstract class Expr {
 
 		T visitGetExpr(Get getExpr);
 
+		T visitSetExpr(Set setExpr);
+
+		T visitThisExpr(This setExpr);
+
+	}
+
+	static class This extends Expr {
+		This(Token keyword) {
+			this.keyword = keyword;
+		}
+
+		final Token keyword;
+
+		@Override
+		<T> T accept(Expr.Visitor<T> visitor) {
+			return visitor.visitThisExpr(this);
+		}
+	}
+
+	static class Set extends Expr {
+		Set(Expr object, Token name, Expr value) {
+			this.object = object;
+			this.name = name;
+			this.value = value;
+		}
+
+		final Expr object;
+		final Token name;
+		final Expr value;
+
+		@Override
+		<T> T accept(Expr.Visitor<T> visitor) {
+			return visitor.visitSetExpr(this);
+		}
 	}
 
 	static class Logical extends Expr {

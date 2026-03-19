@@ -16,22 +16,56 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	private enum FunctionType {
 		NONE,
 		FUNCTION,
+		METHOD,
+		INITIALIZER,
 	}
 
 	Resolver(Interpreter interpreter) {
 		this.interpreter = interpreter;
 	}
 
+	private enum ClassType {
+		NONE,
+		CLASS
+	}
+
+	private ClassType currentClass = ClassType.NONE;
+
 	@Override
 	public Void visitClassStmt(Stmt.Class stmt) {
+		ClassType enclosingClass = currentClass;
+		currentClass = ClassType.CLASS;
+
 		this.declare(stmt.name);
 		this.define(stmt.name);
+
+		this.beginScope();
+		this.scopes.peek().put("this", true);
+
+		for (Stmt.Function method : stmt.methods) {
+			FunctionType declaration = FunctionType.METHOD;
+			if (method.name.lexeme.equals("init")) {
+				declaration = FunctionType.INITIALIZER;
+			}
+			resolveFunction(method, declaration);
+		}
+
+		this.endScope();
+
+		currentClass = enclosingClass;
 
 		return null;
 	}
 
 	@Override
 	public Void visitGetExpr(Expr.Get expr) {
+		this.resolve(expr.object);
+		return null;
+	}
+
+	@Override
+	public Void visitSetExpr(Expr.Set expr) {
+		this.resolve(expr.value);
 		this.resolve(expr.object);
 		return null;
 	}
@@ -96,6 +130,9 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		}
 
 		if (stmt.value != null) {
+			if (currentFunction == FunctionType.INITIALIZER) {
+				Lox.error(stmt.keyword, "Can't return a value from an initialzer");
+			}
 			this.resolve(stmt.value);
 		}
 
@@ -200,6 +237,16 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		for (Stmt stmt : stmts) {
 			resolve(stmt);
 		}
+	}
+
+	@Override
+	public Void visitThisExpr(Expr.This expr) {
+		if (this.currentClass == ClassType.NONE) {
+			Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+			return null;
+		}
+		this.resolveLocal(expr, expr.keyword);
+		return null;
 	}
 
 	private void resolve(Stmt stmt) {

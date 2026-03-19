@@ -22,6 +22,17 @@ print a;
 print b;
 print c;
 
+var logical_one = true;
+var logical_two = false;
+
+if (logical_one) {
+	print "This is not a false value";
+}
+
+if (!logical_two) {
+	print "This is not a true value";
+}
+
 var num = 1;
 
 {
@@ -68,3 +79,11 @@ class DevonshireCream {
 }
 
 print DevonshireCream;
+
+class Bacon {
+	eat() {
+		print "Crunch crunch!";
+	}
+}
+
+Bacon().eat();

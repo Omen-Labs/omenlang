@@ -24,6 +24,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		}
 	}
 
+	@Override
+	public Object visitSetExpr(Expr.Set expr) {
+		Object object = this.evaluate(expr.object);
+
+		if (!(object instanceof LoxInstance)) {
+			throw new RuntimeError(expr.name, "Only instances have fields");
+		}
+
+		Object value = this.evaluate(expr.value);
+		((LoxInstance) object).set(expr.name, value);
+		return value;
+	}
+
 	Interpreter() {
 		globals.define("clock", new LoxCallable() {
 			@Override
@@ -121,7 +134,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitFunctionStmt(Stmt.Function stmt) {
-		LoxFunction function = new LoxFunction(stmt, this.env);
+		LoxFunction function = new LoxFunction(stmt, this.env, false);
 		this.env.define(stmt.name.lexeme, function);
 
 		return null;
@@ -313,12 +326,25 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Object visitThisExpr(Expr.This expr) {
+		return lookUpVariable(expr.keyword, expr);
+	}
+
+	@Override
 	public Void visitClassStmt(Stmt.Class stmt) {
 		this.env.define(stmt.name.lexeme, null);
 		// This defining and assigning allows for using a class name before the class
 		// definition is fully complete. Refrencing itself similar to the recursion.
 
-		LoxClass klass = new LoxClass(stmt.name.lexeme);
+		Map<String, LoxFunction> methods = new HashMap<>();
+
+		for (Stmt.Function method : stmt.methods) {
+			LoxFunction function = new LoxFunction(method, env, method.name.lexeme.equals("init"));
+			methods.put(method.name.lexeme, function);
+		}
+
+		LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+
 		this.env.assign(stmt.name, klass);
 
 		return null;
