@@ -115,6 +115,9 @@ import java.util.List;
 //
 // assignment -> ( call ".")? IDENTIFIER "=" assignment | logical_or;
 
+// ** Class Decleration Rules w/inheritance **
+// classDecl -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}";
+
 abstract class Expr {
 
 	abstract <T> T accept(Visitor<T> visitor);

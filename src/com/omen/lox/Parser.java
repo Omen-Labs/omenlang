@@ -217,6 +217,13 @@ class Parser {
 
 	private Stmt classDeclaration() {
 		Token name = consume(IDENTIFIER, "Expect ** CLASS ** name");
+
+		Expr.Variable superclass = null;
+		if (this.match(LESS)) {
+			this.consume(IDENTIFIER, "Expect superclass name.");
+			superclass = new Expr.Variable(this.previous());
+		}
+
 		consume(LEFT_BRACE, "Expect '{' after ** CLASS ** name");
 		List<Stmt.Function> methods = new ArrayList<>();
 
@@ -226,12 +233,10 @@ class Parser {
 
 		consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-		return new Stmt.Class(name, methods);
+		return new Stmt.Class(name, superclass, methods);
 	}
 
 	private Stmt statement() {
-		if (this.match(THIS))
-			return new Expr.This(previous());
 		if (this.match(CLASS))
 			return classDeclaration();
 		if (this.match(FUN))
@@ -361,6 +366,9 @@ class Parser {
 	}
 
 	private Expr primary() {
+		if (this.match(THIS))
+			return new Expr.This(previous());
+
 		if (this.match(FALSE))
 			return new Expr.Literal(false);
 		if (this.match(TRUE))
